@@ -10,7 +10,7 @@ from app.models.user import User
 from app import db
 from flask_jwt_extended import create_access_token, jwt_required
 from app.routes import app_views
-
+from sqlalchemy.exc import IntegrityError
 
 # REGISTER USER
 @app_views.route('/users', methods=['POST'], strict_slashes=False)
@@ -45,11 +45,17 @@ def register_user():
             "user": new_user.to_dict()
         }), 201
 
+    except IntegrityError as e:
+        db.session.rollback()
+        # Handle duplicate email or username
+        if 'Duplicate entry' in str(e.orig):
+            return jsonify({"error": "User with this email or username already exists"}), 409
+        abort(500, description="An error occurred while registering the user.")
+        
     except Exception as e:
         # Log the error message for debugging
         print(f"Error during user registration: {e}")  # Log the error
         abort(500, description="An error occurred while registering the user.")
-
 
 # LOGIN USER
 @app_views.route('/login', methods=['POST'], strict_slashes=False)
@@ -74,7 +80,6 @@ def login_user():
 
     abort(401, description="Invalid credentials")
 
-
 # GET A SINGLE USER
 @app_views.route(
     '/users/<user_id>', methods=['GET'], strict_slashes=False)
@@ -87,7 +92,6 @@ def get_user(user_id):
 
     return jsonify(user.to_dict()), 200
 
-
 # GET ALL USERS
 @app_views.route('/users', methods=['GET'], strict_slashes=False)
 @jwt_required()
@@ -95,7 +99,6 @@ def get_users():
     """Retrieve all users"""
     users = User.query.all()
     return jsonify([user.to_dict() for user in users]), 200
-
 
 # UPDATE USER
 @app_views.route(
@@ -128,7 +131,6 @@ def update_user(user_id):
         # Log the error message for debugging
         print(f"Error during user update: {e}")  # Log the error
         abort(500, description="An error occurred while updating the user.")
-
 
 # DELETE USER
 @app_views.route(

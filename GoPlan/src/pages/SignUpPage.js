@@ -15,6 +15,7 @@ const SignUpPage = () => {
     bio: ''
   });
   const [shouldSubmit, setShouldSubmit] = useState(false);
+  const [error, setError] = useState('');
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -23,6 +24,7 @@ const SignUpPage = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError('');
     const passwordPattern = /^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
     if (!passwordPattern.test(formData.password)) {
       alert('Password must be at least 8 characters long and include at least one letter, one number, and one special character.');
@@ -33,7 +35,6 @@ const SignUpPage = () => {
 
   useEffect(() => {
     const submitFormData = async () => {
-      // Prepare the data without profile picture for JSON-only submission
       const dataToSend = {
         username: formData.username,
         email: formData.email,
@@ -52,16 +53,20 @@ const SignUpPage = () => {
           body: JSON.stringify(dataToSend)
         });
 
-        if (!response.ok) {
+        if (response.status === 409) {
+          setError('User with this email or username already exists.');
+          return;
+        } else if (!response.ok) {
           const errorMessage = await response.text();
           throw new Error(`Network response was not ok: ${errorMessage}`);
         }
 
         const result = await response.json();
         console.log('API Response:', result);
-        navigate('/home'); // Redirect to HomePage after successful registration
+        navigate('/home');
       } catch (error) {
         console.error('There was a problem with the fetch operation:', error);
+        setError('An error occurred during registration. Please try again.');
       }
     };
 
@@ -84,6 +89,7 @@ const SignUpPage = () => {
           <div className="col-12 col-md-8 col-lg-6">
             <form className="auth-container" onSubmit={handleSubmit}>
               <h2>Sign Up</h2>
+              {error && <div className="alert alert-danger">{error}</div>}
               <div className="form-group">
                 <label htmlFor="username">Username</label>
                 <input

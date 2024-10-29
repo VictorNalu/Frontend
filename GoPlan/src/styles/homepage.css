@@ -1,46 +1,98 @@
+/* Existing styles */
 .homepage {
-    min-height: 100vh;
-    background-color: #f9f9f9;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  
-  header {
-    width: 100%;
-    background-color: #fff;
-  }
-  
+  min-height: 100vh;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-top: 60px; /* Adjust for fixed header height */
+}
+
+header {
+  width: 100%;
+  background-color: #fff;
+  position: fixed; /* Keep header fixed at the top */
+  top: 0;
+  left: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 10px 20px;
+  z-index: 1000;
+  box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1); /* Add subtle shadow */
+}
+
+.logo {
+  width: 120px;
+}
+
+.profile-icon {
+  position: relative;
+  margin-right: 100px; /* Adjust spacing without moving on smaller screens */
+}
+
+.profile-icon img {
+  width: 30px;
+  cursor: pointer;
+}
+
+/* Dropdown styling */
+.dropdown-menu {
+  display: block;
+  position: absolute;
+  top: 40px; /* Position the dropdown below the profile icon */
+  right: 0;
+  transform: translateX(-10px); /* Adjust position slightly for better display */
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+  width: 150px;
+  z-index: 1000;
+  padding: 5px 0;
+}
+
+.dropdown-menu.hidden {
+  display: none;
+}
+
+.dropdown-item {
+  padding: 10px;
+  cursor: pointer;
+  color: #333;
+  text-align: left;
+  padding-left: 15px;
+}
+
+.dropdown-item:hover {
+  background-color: #f5f5f5;
+}
+
+/* Responsive styles */
+
+/* Medium screens (tablets) */
+@media (max-width: 768px) {
   .logo {
-    width: 120px;
+    width: 100px;
   }
-  
-  .profile-icon img {
-    width: 30px;
-    cursor: pointer;
+
+  .dropdown-menu {
+    right: -10px; /* Slight adjustment to center the dropdown */
+    transform: translateX(-5px);
+    width: 130px; /* Reduce width slightly on tablets */
   }
-  
-  main {
-    flex-grow: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+}
+
+/* Small screens (mobile phones) */
+@media (max-width: 576px) {
+  .logo {
+    width: 80px;
   }
-  
-  .homepage-form {
-    width: 100%;
-    max-width: 400px;
+
+  .dropdown-menu {
+    right: 10px; /* Adjust for better alignment on mobile */
+    transform: translateX(-10px);
+    width: 100%; /* Full width for easier tapping on mobile */
+    box-shadow: none; /* Remove shadow for simpler look */
+    border-radius: 0; /* Square corners on mobile */
   }
-  
-  .homepageform .form-control {
-    border-radius: 5px;
-    padding: 10px;
-  }
-  
-  .btn-block {
-    width: 100%;
-    padding: 10px;
-    border-radius: 5px;
-    font-size: 18px;
-  }
-  
+}
