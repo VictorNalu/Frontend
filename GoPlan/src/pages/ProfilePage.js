@@ -1,111 +1,119 @@
 import React, { useState, useEffect } from 'react';
-import '../styles/profilepage.css';
-import { useNavigate } from 'react-router-dom';
-import jwt_decode from 'jwt-decode'; // Make sure to install jwt-decode
+import axios from 'axios';
 
 const ProfilePage = () => {
     const [user, setUser] = useState(null);
-    const [showPrompt, setShowPrompt] = useState(false);
-    const navigate = useNavigate();
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [editMode, setEditMode] = useState(false);
+    const [updatedUser, setUpdatedUser] = useState({});
 
     useEffect(() => {
-        const fetchUserData = async () => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                navigate('/login'); // Redirect to login if there's no token
-                return;
-            }
-
-            const decodedToken = jwt_decode(token); // Decode the token to get the user ID
-            const userId = decodedToken.identity; // Adjust based on your token structure
-
+        const getProfileData = async () => {
             try {
-                const response = await fetch(`/users/${userId}`, { // Use the user ID to fetch user data
-                    method: 'GET',
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch user data');
+                const token = localStorage.getItem('access_token');
+                if (!token) {
+                    throw new Error("Authorization token is missing.");
                 }
 
-                const userData = await response.json();
-                setUser(userData); // Set user data to state
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-                navigate('/login'); // Redirect to login on error
+                const userId = JSON.parse(atob(token.split('.')[1])).sub;
+                const response = await axios.get(`http://localhost:5000/api/users/${userId}`, {
+                    headers: { Authorization: `Bearer ${token}` },
+                });
+
+                setUser(response.data);
+                setUpdatedUser(response.data); // Initialize updatedUser with current data
+            } catch (err) {
+                console.error("Error fetching user data:", err);
+                setError("Failed to load user data. Please try again.");
+            } finally {
+                setLoading(false);
             }
         };
 
-        fetchUserData();
-    }, [navigate]); // Dependency array includes navigate to avoid warnings
+        getProfileData();
+    }, []);
 
-    const handleEdit = () => {
-        console.log("Edit profile clicked");
+    const handleEditToggle = () => {
+        setEditMode(!editMode);
     };
 
-    const handleDeletePrompt = () => {
-        setShowPrompt(true); // Show the prompt when delete is clicked
+    const handleInputChange = (e) => {
+        const { name, value } = e.target;
+        setUpdatedUser((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handleDelete = async () => {
-        if (!user) return; // Make sure user is available
-
+    const handleSaveChanges = async () => {
         try {
-            const response = await fetch(`/users/${user.id}`, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
+            const token = localStorage.getItem('access_token');
+            const userId = JSON.parse(atob(token.split('.')[1])).sub;
+
+            await axios.put(`http://localhost:5000/api/users/${userId}`, updatedUser, {
+                headers: { Authorization: `Bearer ${token}` },
             });
 
-            if (response.ok) {
-                navigate('/'); // Redirect to landing page after deletion
-            } else {
-                console.error('Failed to delete account');
-                // Handle error (optional)
-            }
-        } catch (error) {
-            console.error('Error:', error);
+            setUser(updatedUser);
+            setEditMode(false);
+        } catch (err) {
+            console.error("Error updating user data:", err);
+            setError("Failed to update user data. Please try again.");
         }
     };
 
-    const handleCancel = () => {
-        setShowPrompt(false); // Close the prompt
+    const handleDeleteAccount = async () => {
+        try {
+            const token = localStorage.getItem('access_token');
+            const userId = JSON.parse(atob(token.split('.')[1])).sub;
+
+            await axios.delete(`http://localhost:5000/api/users/${userId}`, {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            localStorage.removeItem('access_token');
+            window.location.href = '/'; // Redirect to homepage after deletion
+        } catch (err) {
+            console.error("Error deleting account:", err);
+            setError("Failed to delete account. Please try again.");
+        }
     };
 
-    if (!user) {
-        return <div>Loading...</div>; // Loading state while fetching user data
+    if (loading) {
+        return <div>Loading user data...</div>;
+    }
+
+    if (error) {
+        return <div>{error}</div>;
     }
 
     return (
-        <div className="profile-page">
-            <header className="header">
-                <h1>Welcome to GoPlan</h1>
-            </header>
-            <div className="profile-body">
-                <div className="profile-icon">
-                    <img src="/path/to/placeholder-icon.png" alt="Profile Icon" />
+        <div>
+            <h1>Profile Page</h1>
+            {user ? (
+                <div>
+                    <h2>User Details</h2>
+                    {editMode ? (
+                        <>
+                            <p><strong>Username:</strong> <input type="text" name="username" value={updatedUser.username} onChange={handleInputChange} /></p>
+                            <p><strong>Email:</strong> <input type="email" name="email" value={updatedUser.email} onChange={handleInputChange} /></p>
+                            <p><strong>First Name:</strong> <input type="text" name="firstName" value={updatedUser.firstName} onChange={handleInputChange} /></p>
+                            <p><strong>Last Name:</strong> <input type="text" name="lastName" value={updatedUser.lastName} onChange={handleInputChange} /></p>
+                            <p><strong>Bio:</strong> <textarea name="bio" value={updatedUser.bio} onChange={handleInputChange}></textarea></p>
+                            <button onClick={handleSaveChanges}>Save Changes</button>
+                            <button onClick={handleEditToggle}>Cancel</button>
+                        </>
+                    ) : (
+                        <>
+                            <p><strong>Username:</strong> {user.username}</p>
+                            <p><strong>Email:</strong> {user.email}</p>
+                            <p><strong>Full Name:</strong> {user.firstName} {user.lastName}</p>
+                            <p><strong>Bio:</strong> {user.bio}</p>
+                            <button onClick={handleEditToggle}>Edit Profile</button>
+                            <button onClick={handleDeleteAccount}>Delete Account</button>
+                        </>
+                    )}
                 </div>
-                <div className="profile-info">
-                    <h2>{user.first_name} {user.last_name}</h2>
-                    <p>Email: {user.email}</p>
-                </div>
-                <div className="profile-buttons">
-                    <button onClick={handleEdit}>Edit Profile</button>
-                    <button onClick={handleDeletePrompt}>Delete Account</button>
-                </div>
-            </div>
-
-            {showPrompt && (
-                <div className="confirmation-prompt">
-                    <p>Delete account?</p>
-                    <button onClick={handleDelete}>Yes</button>
-                    <button onClick={handleCancel}>No</button>
-                </div>
+            ) : (
+                <p>No user data available.</p>
             )}
         </div>
     );

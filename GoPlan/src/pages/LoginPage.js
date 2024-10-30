@@ -29,8 +29,8 @@ const LoginPage = () => {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          email: loginValue.includes('@') ? loginValue : null, // Check if it's an email
-          username: !loginValue.includes('@') ? loginValue : null, // Otherwise treat it as username
+          email: loginValue.includes('@') ? loginValue : null,
+          username: !loginValue.includes('@') ? loginValue : null,
           password: password
         })
       });
@@ -46,7 +46,7 @@ const LoginPage = () => {
       // Save access token if needed (in localStorage/sessionStorage for persistence)
       localStorage.setItem('access_token', result.access_token);
 
-      navigate('/home'); // Redirect to homepage upon successful login
+      navigate('/home'); // Redirect to the profile page upon successful login
     } catch (error) {
       console.error("Login error:", error);
       setError("Invalid login credentials. Please try again.");

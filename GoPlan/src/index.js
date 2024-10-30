@@ -22,7 +22,7 @@ root.render(
         <Route path="/home" element={<HomePage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/travel" element={<TravelPlanPage />} />
-        <Route path="/dashboard" element={<DashboardPage />} /> {/* Add your user ID dynamically */}
+        <Route path="/dashboard" element={<DashboardPage />} />
       </Routes>
     </Router>
   </React.StrictMode>
