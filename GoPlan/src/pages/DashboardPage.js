@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { useNavigate } from 'react-router-dom';
 
-const Dashboard = () => {
+const DashboardPage = () => {
   const [travelPlans, setTravelPlans] = useState([]);
   const navigate = useNavigate();
 
@@ -103,4 +103,4 @@ const Dashboard = () => {
   );
 };
 
-export default Dashboard;
+export default DashboardPage;
